@@ -388,14 +388,6 @@ export async function initBrowser(
       puppeteer.executablePath() ??
       chromePath;
 
-    spinnies.add(`executable-path-${options.session}`, {
-      text: `...`
-    });
-
-    spinnies.succeed(`executable-path-${options.session}`, {
-      text: `Executable path browser: ${executablePath}`
-    });
-
     const extractPath = path.join(process.cwd(), 'chrome');
     const checkPath = await checkPathDowload(extractPath);
     const platform = os.platform();
@@ -405,7 +397,7 @@ export async function initBrowser(
         text: `...`
       });
       spinnies.fail(`browser-info-${options.session}`, {
-        text: `Could not find the google-chrome browser on the machine!`
+        text: `Não foi possível encontrar o navegador google-chrome na máquina!`
       });
       const resultBash = await downloadBash();
       if (resultBash) {
@@ -433,7 +425,7 @@ export async function initBrowser(
           text: `...`
         });
         spinnies.succeed(`browser-path-${options.session}`, {
-          text: `Path download Chrome: ${zipFilePath}`
+          text: `Caminho de download do Chrome: ${zipFilePath}`
         });
 
         const response = await axios.get(downloadUrl, {
@@ -444,37 +436,31 @@ export async function initBrowser(
         if (response.status === 200) {
           await fs.promises.writeFile(zipFilePath, response.data);
           spinnies.succeed(`browser-status-${options.session}`, {
-            text: `Download completed.`
+            text: `Download concluido.`
           });
 
           spinnies.add(`browser-status-${options.session}`, {
-            text: `Extracting Chrome: ${extractPath}`
+            text: `Extraindo Chrome: ${extractPath}`
           });
 
           const zip = await unzipper.Open.file(zipFilePath);
           await zip.extract({ path: extractPath });
           spinnies.succeed(`browser-status-${options.session}`, {
-            text: `Chrome extracted successfully.`
+            text: `Chrome extraido com sucesso.`
           });
           const pathChrome = path.join(extractPath, 'chrome-win', 'chrome.exe');
           if (!fs.existsSync(pathChrome)) {
-            throw new Error(`Error no Path download Chrome`);
+            throw new Error(`Caminho de download do Chrome`);
           }
           const checkDowl = await checkPathDowload(extractPath);
           if (!checkDowl) {
-            throw new Error(`Error no Path download Chrome`);
+            throw new Error(`Caminho de download do Chrome`);
           }
 
           const folderChrom = path.join(extractPath, 'chrome-win');
           fs.chmodSync(folderChrom, '777');
 
           executablePath = pathChrome;
-          spinnies.add(`browser-path-${options.session}`, {
-            text: `...`
-          });
-          spinnies.succeed(`browser-path-${options.session}`, {
-            text: `Execute Path Chrome: ${executablePath}`
-          });
         } else {
           throw new Error('Error download file Chrome.');
         }
@@ -486,14 +472,6 @@ export async function initBrowser(
     let chromeVersion = '';
     let versionTimeout: string | number | NodeJS.Timeout;
 
-    spinnies.add(`browser-Platform-${options.session}`, {
-      text: `...`
-    });
-
-    spinnies.succeed(`browser-Platform-${options.session}`, {
-      text: `Platform: ${platform}`
-    });
-
     if (platform === 'darwin' || platform === 'linux') {
       chromeVersion = await getChromeVersionBash(executablePath);
     } else {
@@ -502,28 +480,21 @@ export async function initBrowser(
       } else {
         const browser = await puppeteer.launch({
           executablePath,
-          headless: options.headless === true || options.headless === false ? options.headless : 'new',
+          headless:
+            options.headless === true || options.headless === false
+              ? options.headless
+              : 'new',
           args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
 
         versionTimeout = setTimeout(() => {
           browser.close();
-          throw new Error('This browser version has problems');
+          throw new Error('Esta versão do navegador tem problema');
         }, 10000);
         chromeVersion = await browser.version();
         clearTimeout(versionTimeout);
         await browser.close();
       }
-    }
-
-    if (chromeVersion) {
-      spinnies.add(`browser-Version-${options.session}`, {
-        text: `...`
-      });
-
-      spinnies.succeed(`browser-Version-${options.session}`, {
-        text: `Browser Version: ${chromeVersion}`
-      });
     }
 
     const extras = { executablePath };
@@ -704,23 +675,7 @@ function removeStoredSingletonLock(
         // No need to remove the lock on Windows, so resolve with true directly.
         resolve(true);
       } else {
-        spinnies.add(`stored-singleton-lock-${options.session}`, {
-          text: `...`
-        });
-
-        spinnies.succeed(`stored-singleton-lock-${options.session}`, {
-          text: `Path Stored "SingletonLock": ${singletonLockPath}`
-        });
-
-        spinnies.add(`path-stored-singleton-lock-${options.session}`, {
-          text: `checking SingletonLock file`
-        });
-
         if (fs.existsSync(singletonLockPath)) {
-          spinnies.add(`path-stored-singleton-lock-${options.session}`, {
-            text: `The file was found "SingletonLock"`
-          });
-
           fs.unlink(singletonLockPath, (error) => {
             if (error && error.code !== 'ENOENT') {
               spinnies.fail(`path-stored-singleton-lock-${options.session}`, {

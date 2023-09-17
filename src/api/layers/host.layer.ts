@@ -201,7 +201,7 @@ export class HostLayer {
   ) {
     this.statusFind = statusFind;
 
-    this.spin('Waiting page load', 'spinning');
+    this.spin('Aguardando carregamento da página', 'spinning');
 
     this.spin('Checking is logged...');
     let authenticated = await isAuthenticated(this.page).catch(() => null);
@@ -216,12 +216,12 @@ export class HostLayer {
     this.startAutoClose();
 
     if (authenticated === false) {
-      this.spin('Waiting for QRCode Scan...');
+      this.spin('Aguardando o escaneamento do QRCode...');
       statusFind && statusFind('notLogged', this.session);
 
       await this.waitForQrCodeScan(catchQR).catch(() => undefined);
 
-      this.spin('Checking QRCode status...');
+      this.spin('Checando estado do QrCode...');
 
       // Wait for interface update
       await sleep(200);
